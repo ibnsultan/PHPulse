@@ -12,6 +12,26 @@ PHPulse is an experimental PHP framework designed specifically for constructing 
 
 - PHP
 - Electron
+- NodeJS 18 LTS
+
+## Getting Started
+
+- Dowload the latest release from the release section
+- Install electron builder
+
+  ```bash
+  npm install -g electron-builder
+  ```
+- To test and debug ur build run
+
+  ```bash
+  npm start
+  ```
+- To build the app run
+
+  ```bash
+  npm run dist
+  ```
 
 ## 🚦 Project Overview
 
