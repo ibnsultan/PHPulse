@@ -1,4 +1,6 @@
-/node_modules/
-/php/
-
-/main Copy.js
+/test*
+/vendor/
+/builder/php
+/builder/app
+/builder/dist
+/builder/node_modules
