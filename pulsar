@@ -1,0 +1,41 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader for
+| this application. We just need to utilize it! We'll simply require it
+| into the script here so we don't need to manually load our classes.
+|
+*/
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+/*
+|--------------------------------------------------------------------------
+| Register Application File
+|--------------------------------------------------------------------------
+|
+| This file is the entry point for the application. It is responsible for
+| bootstrapping the application and loading the configuration. It also
+| defines a few helper functions used throughout the application.
+|
+*/
+
+require_once __DIR__ . '/console/helpers.php';
+require_once __DIR__ . '/console/engine.php';
+
+/*
+|--------------------------------------------------------------------------
+| Run The Application
+|--------------------------------------------------------------------------
+|
+| Once we have the application, we can handle the incoming request using
+| to the application's console engine. Then, we will send the response
+| back to this script so it can printed out to the console screen.
+|
+*/
+
+(new \Console\ConsoleEngine())->run();
