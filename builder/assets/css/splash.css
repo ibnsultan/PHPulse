@@ -1,0 +1,30 @@
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  .splash-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #282c34;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+  }
+  
+  .splash-content {
+    text-align: center;
+    animation: fadeIn 1s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
