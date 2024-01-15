@@ -1,0 +1,37 @@
+{
+    "name": "phpulse",
+    "version": "1.0.0",
+    "description": "PHPulse is a PHP framework for building desktop applications.",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "electron .",
+        "pack": "electron-packager . phpulse --out=dist --overwrite --icon=assets/build/icon",
+        "dist": "echo 'No distribution script specified'"
+    },
+    "build": {
+        "appId": "com.phpulse.app",
+        "productName": "PHPulse"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ibnsultan/PHPulse.git"
+    },
+    "keywords": [
+        "php",
+        "phpulse",
+        "electron",
+        "desktop",
+        "dev",
+        "nodejs"
+    ],
+    "author": "Abdulbasit Rubeiyya",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ibnsultan/PHPulse/issues"
+    },
+    "homepage": "https://github.com/ibnsultan/PHPulse#readme",
+    "devDependencies": {
+        "electron": "^28.1.3"
+    }
+}
