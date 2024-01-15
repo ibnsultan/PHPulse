@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/ibnsultan/PHPulse/main/builder/assets/build/logo.png" alt="PHPulse Logo" width="60" height="60" />
 </p>
 
-#  PHPulse
+# PHPulse
 
 PHPulse is an experimental PHP framework designed specifically for constructing desktop applications. 🌐 While currently in its proof-of-concept stage, it's important to note that using PHPulse for production development is not recommended at this time.
 
@@ -10,9 +10,9 @@ PHPulse is an experimental PHP framework designed specifically for constructing 
 
 - ✅ Windows
 - ☑️ Linux (Limited Support)
-  some component are yet complete ref (TODO. builder/main.js ln:12)
+  some component are not yet complete ref (TODO. builder/main.js ln:12)
 - ❌ Mac OS (Very Limited Support)
-  some component are yet complete ref (TODO. builder/main.js ln:12)
+  some component are not yet complete ref (TODO. builder/main.js ln:12)
 
 ## 🧰 Tools Utilized
 
