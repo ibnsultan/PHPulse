@@ -212,8 +212,6 @@ class ConsoleEngine extends ConsoleHelpers
 		$response = exec('cd ' . $this->builder_dir . ' && npm run pack');
 
 		$this->write(
-			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
-			'  Your application has been packed successfully.',
 			'  ' . $response,
 			''
 		);
@@ -245,7 +243,7 @@ class ConsoleEngine extends ConsoleHelpers
 		$root_config->entry_point = $this->prompt('  Application Entry Point: ', $root_config->entry_point);
 		$root_config->entry_file = $this->prompt('  Application Entry File: ', $root_config->entry_file);
 
-		$root_config->name = strtolower($appName);
+		$root_config->name = str_replace(' ', '', strtolower($appName));	// replace spaces with nothing
 		$root_config->productName = $appName;
 
 		// rewrite the root config file and the build config file
@@ -258,6 +256,10 @@ class ConsoleEngine extends ConsoleHelpers
 		$package_config->version = $root_config->version;
 		$package_config->build->appId = $root_config->appId;
 		$package_config->build->productName = $appName;
+
+		// replace the name in the pack script
+		$makerScript = explode(" ", $package_config->scripts->pack); $makerScript[2] = $root_config->name;
+		$package_config->scripts->pack = implode(" ", $makerScript);
 
 		// rewrite the package config file
 		file_put_contents($this->package_config, json_encode($package_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
