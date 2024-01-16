@@ -4,9 +4,9 @@
 
 # PHPulse
 
-PHPulse is an experimental PHP framework designed specifically for constructing desktop applications. 🌐 While currently in its proof-of-concept stage, it's important to note that using PHPulse for production development is not recommended at this time.
+PHPulse is an experimental PHP framework designed specifically for constructing desktop applications. 
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/XT3wbOu--L4?si=Tdx5alqWWf9Gi6l1" title="YouTube video player" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+While currently in its proof-of-concept stage, it's important to note that using PHPulse for production development is not recommended at this time.
 
 ## 🛠️ Supported Platforms
 
