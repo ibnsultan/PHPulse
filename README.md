@@ -1,6 +1,6 @@
-<p style="text-align:center">
+<div style="width:100%;text-align:center">
   <img src="https://raw.githubusercontent.com/ibnsultan/PHPulse/main/builder/assets/build/logo.png" alt="PHPulse Logo" width="60" height="60" />
-</p>
+</div>
 
 # PHPulse
 
