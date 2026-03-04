@@ -4,7 +4,7 @@
 
 # PHPulse
 
-PHPulse is an experimental PHP framework designed specifically for constructing desktop applications. 
+PHPulse is an experimental PHP framework designed specifically for constructing desktop applications.
 
 While currently in its proof-of-concept stage, it's important to note that using PHPulse for production development is not recommended at this time.
 
@@ -43,12 +43,9 @@ The initial skeleton comes with a basic router to handle and designate http requ
 |   |-- 🐘 engine.php
 |   |-- 🤖 helper.php
 |
-|-- 🌐 public
+|-- 🌐 backend (where your backend resides)
 |
 |-- 📦 vendor
-|
-|-- 📂 other-project-folder (php)
-|-- 📄 other-project-files (php)
 |
 |-- 📄 .gitignore
 |-- 📦 composer.json
@@ -85,11 +82,9 @@ The initial skeleton comes with a basic router to handle and designate http requ
 
 ## ✨ Using a custom project
 
-To use a custom/existing project or with frameworks like laravel, make sure you first import the composer packages used i.e `symfony/filesystem` , in your project then copy everything else to your project except the `public` folder, along with the composer folders to avoid your files being overwritten
+Make sure to inialize your project `php pulsar init` and also change your `config.json:  entry_point` and `config.json: entry_file` based on your project requirements and structure
 
-Make sure to inialize your project `php pulsar init` and also change your `config.json:  entry_point` and `config.json: entry_file`
-
-NOTE: Leave the `app` prefix in the `entry_point` and `entry_file` as it is.
+Ps: MVC projects like laravel don't need an entry file as the framework will handle the routing and request handling, you may need to leave the `entry_file` empty and just set the entry point to your public folder i.e `backend/public`
 
 ## 🚧 Roadmap
 
@@ -97,7 +92,6 @@ As the project evolves, it's important to note that the use `electron-packager` 
 
 - [ ] Migrating from packager to builder or forge
 - [ ] Compressing php source to phar
-- [ ] Custom inbuilt database
 - [ ] PHP Code obfusications
 
 ## Contributing
