@@ -32,6 +32,7 @@ The initial skeleton comes with a basic router to handle and designate http requ
 
 ```
 📁 ProjectName
+|-- 🌐 backend (where your backend resides)
 |-- 🛠 builder
 |   |-- 🖼 assets
 |   |   |-- 🏗 build
@@ -42,8 +43,6 @@ The initial skeleton comes with a basic router to handle and designate http requ
 |-- ⚙️ console
 |   |-- 🐘 engine.php
 |   |-- 🤖 helper.php
-|
-|-- 🌐 backend (where your backend resides)
 |
 |-- 📦 vendor
 |
@@ -57,10 +56,11 @@ The initial skeleton comes with a basic router to handle and designate http requ
 ## 😎 Getting Started
 
 - Dowload the latest release from the release section
-- Install electron packager
+- Install the dependencies
 
   ```bash
-  npm install -g electron-packager
+  composer install
+  cd builder && npm install
   ```
 - Initialize your application
 
