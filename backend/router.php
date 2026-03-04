@@ -2,18 +2,6 @@
 
 /*
 |--------------------------------------------------------------------------
-| Register The Auto Loader
-|--------------------------------------------------------------------------
-|
-| Composer provides a convenient, automatically generated class loader for
-| this application.
-|
-*/
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-/*
-|--------------------------------------------------------------------------
 | Application Routing Engine (Basic)
 |--------------------------------------------------------------------------
 |
