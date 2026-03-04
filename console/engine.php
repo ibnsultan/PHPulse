@@ -167,6 +167,9 @@ class ConsoleEngine extends ConsoleHelpers
 		// compile the application files to builder directory
 		$this->compileApplicationFiles();
 
+		// Always overwrite config.json in builder directory
+		$this->copyConfigToBuilder();
+
 		// `npm start` in the builder directory
 		$this->write(
 			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
@@ -200,6 +203,9 @@ class ConsoleEngine extends ConsoleHelpers
 
 		// compile the application files to builder directory
 		$this->compileApplicationFiles();
+
+		// Always overwrite config.json in builder directory
+		$this->copyConfigToBuilder();
 
 		// `npm run pack` in the builder directory
 		$this->write(
@@ -333,11 +339,28 @@ class ConsoleEngine extends ConsoleHelpers
 		$root_config = json_decode(file_get_contents($this->root_config));
 		$ignore_list = $root_config->ignore->list;
 
+		// Add vendor to ignore list temporarily - we'll handle it separately
+		$ignore_list_with_vendor = array_merge($ignore_list, ['vendor']);
 		
-		// copy the application files to the builder directory
+		// copy the backend directory to the builder directory
 
 		try {
-			$this->makeCopy(getcwd(), $this->builder_dir . '/app', $ignore_list);
+			$backend_dir = getcwd() . '/backend';
+			if (!is_dir($backend_dir)) {
+				$this->write(
+					$this->color_red . 'PHPulse Error:' . $this->color_reset,
+					'  Terminating, Backend directory does not exist.',
+					'  Expected: ' . $backend_dir,
+					''
+				); exit(1);
+			}
+
+			// Copy everything except vendor
+			$this->makeCopy($backend_dir, $this->builder_dir . '/backend', $ignore_list_with_vendor);
+
+			// Handle vendor directory intelligently
+			$this->syncVendorDirectory($backend_dir);
+
 		} catch (\Throwable $th) {
 			$this->write(
 				$this->color_red . 'PHPulse Error:' . $this->color_reset,
@@ -492,16 +515,6 @@ class ConsoleEngine extends ConsoleHelpers
 			); return false;
 		}
 
-		// Check if the build config file exists and is writable
-		if (!is_file($this->build_config) or !is_writable($this->build_config)) {
-			$this->write(
-				$this->color_red . 'PHPulse Error:' . $this->color_reset,
-				'  Terminating the build config file does not exists or is not writable.',
-				'  build config file: ' . $this->build_config,
-				''
-			); return false;
-		}
-
 		// Check if the package config file exists and is writable
 		if (!is_file($this->package_config) or !is_writable($this->package_config)) {
 			$this->write(
@@ -515,6 +528,108 @@ class ConsoleEngine extends ConsoleHelpers
 		return true;
 	}
 	
+	/*
+	|--------------------------------------------------------------------------
+	| Sync Vendor Directory
+	|--------------------------------------------------------------------------
+	|
+	| Intelligently sync the vendor directory by checking composer.lock hash.
+	| Only copy vendor if the hash has changed to save time.
+	| @param string $backend_dir
+	| @return void
+	|
+	*/
+
+	private function syncVendorDirectory(string $backend_dir) : void
+	{
+		$source_vendor = $backend_dir . '/vendor';
+		$builder_vendor = $this->builder_dir . '/backend/vendor';
+		$composer_lock = $backend_dir . '/composer.lock';
+		$hash_file = $this->builder_dir . '/.vendor_hash';
+
+		// Check if vendor directory exists in source
+		if (!is_dir($source_vendor)) {
+			$this->write(
+				$this->color_yellow . 'PHPulse Notice:' . $this->color_reset,
+				'  No vendor directory found in backend, skipping vendor sync.',
+				''
+			);
+			return;
+		}
+
+		// Check if composer.lock exists
+		if (!is_file($composer_lock)) {
+			$this->write(
+				$this->color_yellow . 'PHPulse Warning:' . $this->color_reset,
+				'  No composer.lock found, copying vendor directory...',
+				''
+			);
+			$this->makeCopy($source_vendor, $builder_vendor);
+			return;
+		}
+
+		// Calculate hash of composer.lock
+		$current_hash = md5_file($composer_lock);
+		$stored_hash = file_exists($hash_file) ? trim(file_get_contents($hash_file)) : null;
+
+		// Check if vendor needs updating
+		if ($current_hash === $stored_hash && is_dir($builder_vendor)) {
+			$this->write(
+				$this->color_green . 'PHPulse Notice:' . $this->color_reset,
+				'  Vendor directory is up to date (composer.lock unchanged), skipping copy.',
+				''
+			);
+			return;
+		}
+
+		// Hash differs or builder vendor doesn't exist - need to update
+		$this->write(
+			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
+			'  Composer.lock has changed, updating vendor directory...',
+			$this->color_yellow . '  This may take a moment...' . $this->color_reset,
+			''
+		);
+
+		// Remove old vendor directory if it exists
+		if (is_dir($builder_vendor)) {
+			$this->fs->remove($builder_vendor);
+		}
+
+		// Copy new vendor directory
+		$this->makeCopy($source_vendor, $builder_vendor);
+
+		// Store the new hash
+		file_put_contents($hash_file, $current_hash);
+
+		$this->write(
+			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
+			'  Vendor directory updated successfully.',
+			''
+		);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| Copy Config to Builder
+	|--------------------------------------------------------------------------
+	|
+	| The copy config to builder function is responsible for copying the root
+	| config.json file to the builder directory, overwriting any existing file.
+	| @return void
+	|
+	*/
+
+	private function copyConfigToBuilder() : void
+	{
+		$this->write(
+			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
+			'  Copying config.json to builder directory...',
+			''
+		);
+
+		copy($this->root_config, $this->build_config);
+	}
+
 	/*
 	|--------------------------------------------------------------------------
 	| Check for Errors
