@@ -4,7 +4,6 @@
     "productName": "PHPulse",
     "description": "PHPulse is a PHP framework for building desktop applications.",
     "version": "1.0.0",
-    "port": 48080,
     "dev_console": false,
     "entry_point": "backend",
     "entry_file": "backend/router.php",
