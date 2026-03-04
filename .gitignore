@@ -1,6 +1,8 @@
 /test*
 /vendor/
 /builder/php
-/builder/app
+/builder/backend
 /builder/dist
 /builder/node_modules
+/builder/config.json
+/builder/package-lock.json
