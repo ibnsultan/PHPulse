@@ -123,13 +123,18 @@ class ConsoleHelpers
     | Copy files and or directories
     |--------------------------------------------------------------------------
     | Copies files and or directories from one location to another
-    | @param string $source, string $destination, array|objects ignore
+    | @param string $source, string $destination, array|objects ignore, string $rootPath
     | @return void
     |
     */
 
-    public function makeCopy(string $source, string $destination, $ignore=null) : void
+    public function makeCopy(string $source, string $destination, $ignore=null, string $rootPath=null) : void
     {
+        // Set root path on first call
+        if($rootPath === null) {
+            $rootPath = $source;
+        }
+
         if($ignore == null):
             $this->fs->mirror($source, $destination);
 
@@ -138,17 +143,34 @@ class ConsoleHelpers
                 $directory = $source;
                 $source = opendir($source);
                 
-                // make destination directory if it doesn't exis
+                // make destination directory if it doesn't exist
                 if(!$this->fs->exists($destination)) { $this->fs->mkdir($destination); }
                 
                 while(false !== ($file = readdir($source))) {
-                    if($file != '.' && $file != '..' && !in_array($file, $ignore)) {
+                    if($file != '.' && $file != '..') {
                         
-                        // check if file or directory
-                        if(is_dir($directory . '/' . $file)) {
-                            $this->makeCopy($directory . '/' . $file, $destination . '/' . $file, $ignore);
-                        } else {
-                            $this->fs->copy($directory . '/' . $file, $destination . '/' . $file);
+                        // Calculate relative path from root
+                        $fullPath = $directory . '/' . $file;
+                        $relativePath = str_replace($rootPath . '/', '', $fullPath);
+                        $relativePath = str_replace('\\', '/', $relativePath);
+                        
+                        // Check if relative path matches any ignore pattern
+                        $shouldIgnore = false;
+                        foreach($ignore as $ignorePattern) {
+                            $ignorePattern = str_replace('\\', '/', $ignorePattern);
+                            if($relativePath === $ignorePattern || strpos($relativePath, $ignorePattern . '/') === 0) {
+                                $shouldIgnore = true;
+                                break;
+                            }
+                        }
+                        
+                        if(!$shouldIgnore) {
+                            // check if file or directory
+                            if(is_dir($directory . '/' . $file)) {
+                                $this->makeCopy($directory . '/' . $file, $destination . '/' . $file, $ignore, $rootPath);
+                            } else {
+                                $this->fs->copy($directory . '/' . $file, $destination . '/' . $file);
+                            }
                         }
 
                     }
