@@ -2,17 +2,50 @@ const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const os = require('os');
+const net = require('net');
 
 // get config.json
 const appConfig = require( path.join(__dirname, 'config.json') );
 
 let phpServerProcess;
+let serverPort;
 
-const startPHPServer = () => {
+const isPortAvailable = (port) => {
+	return new Promise((resolve) => {
+		const server = net.createServer();
+		
+		server.once('error', (err) => {
+			if (err.code === 'EADDRINUSE') {
+				resolve(false);
+			} else {
+				resolve(false);
+			}
+		});
+		
+		server.once('listening', () => {
+			server.close();
+			resolve(true);
+		});
+		
+		server.listen(port, 'localhost');
+	});
+};
+
+const findAvailablePort = async (startPort = 48000) => {
+	let port = startPort;
+	while (port < 49000) {
+		if (await isPortAvailable(port)) {
+			return port;
+		}
+		port++;
+	}
+	throw new Error('No available ports found in range 48000-49000');
+};
+
+const startPHPServer = async () => {
 	
 	const phpScriptPath = path.join(__dirname, appConfig.entry_point);
-	const phpEntryPoint = path.join(__dirname, appConfig.entry_file);
-
+	
 	if( os.platform() === 'win32' ) {
 		phpBinPath = path.join(__dirname, 'php', 'php.exe');
 	} else {
@@ -31,7 +64,20 @@ const startPHPServer = () => {
 		phpBinPath = path.join(__dirname, 'usr', 'bin', 'php');
 	}
 
-	phpServerProcess = spawn(phpBinPath, ['-S', `localhost:${appConfig.port}`, '-t', phpScriptPath, phpEntryPoint]);
+	// Find an available port dynamically
+	serverPort = await findAvailablePort(48000);
+	console.log(`Using port: ${serverPort}`);
+
+	// Build spawn arguments
+	const spawnArgs = ['-S', `localhost:${serverPort}`, '-t', phpScriptPath];
+	
+	// Only add entry file if it's defined and not empty
+	if (appConfig.entry_file && appConfig.entry_file.trim() !== '') {
+		const phpEntryPoint = path.join(__dirname, appConfig.entry_file);
+		spawnArgs.push(phpEntryPoint);
+	}
+
+	phpServerProcess = spawn(phpBinPath, spawnArgs);
 
 	phpServerProcess.stdout.on('data', (data) => {
 		console.log(`PHP Server: ${data}`);
@@ -89,7 +135,7 @@ const createWindow = () => {
 	});
 
 	// Load the PHP server URL
-	win.loadURL(`http://localhost:${appConfig.port}`);
+	win.loadURL(`http://localhost:${serverPort}`);
 
 	// Open the DevTools.
 	if (appConfig.dev_console) {
@@ -99,12 +145,12 @@ const createWindow = () => {
 
 let splash;
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
 	splash = createSplashScreen();
 
 	// Add a delay before starting the PHP server and showing the main window
-	setTimeout(() => {
-		startPHPServer();
+	setTimeout(async () => {
+		await startPHPServer();
 		createWindow();
 	}, 3000); // Adjust the delay duration as needed
 
