@@ -74,11 +74,32 @@ The initial skeleton comes with a basic router to handle and designate http requ
   ```bash
   php pulsar serve
   ```
+- Prepare your application for building
+
+  ```bash
+  # Update files in builder directory
+  php pulsar prepare
+
+  # Fresh start - clean and rebuild
+  php pulsar prepare --fresh
+  ```
 - To build the app run
 
   ```bash
+  # Build for current platform (auto-detected)
   php pulsar make
+
+  # Build for specific platform
+  php pulsar make --platform=win
+  php pulsar make --platform=mac
+  php pulsar make --platform=linux
+
+  # Build for all platforms
+  php pulsar make --platform=all
   ```
+
+  > **Note**: Architecture (32-bit/64-bit) is automatically determined by electron-builder based on the target platform. On 64 it will build for both 32 and 64 bit, while on 32 it will only build for 32 bit.
+  >
 
 ## ✨ Using a custom project
 
@@ -88,11 +109,11 @@ Ps: MVC projects like laravel don't need an entry file as the framework will han
 
 ## 🚧 Roadmap
 
-As the project evolves, it's important to note that the use `electron-packager` will be deprecated and more conventional electron packaging solutions like `electron-builder` or `forge` as it substitutes
-
-- [ ] Migrating from packager to builder or forge
+- [X] Migrated from electron-packager to electron-builder
+- [ ] Using asar packaging for better performance and smaller size
 - [ ] Compressing php source to phar
 - [ ] PHP Code obfusications
+- [ ] Cross-platform build support from any OS
 
 ## Contributing
 
