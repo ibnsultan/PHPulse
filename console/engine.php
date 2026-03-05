@@ -28,6 +28,8 @@ class ConsoleEngine extends ConsoleHelpers
 	private $value;
 	private $option;
 	private $command;
+	private $platform;
+	private $fresh;
 
 	/*
 	|--------------------------------------------------------------------------
@@ -138,8 +140,30 @@ class ConsoleEngine extends ConsoleHelpers
 			''
 		);
 
+		// If fresh flag is set, clean the builder directory
+		if ($this->fresh) {
+			$this->write(
+				$this->color_yellow . 'PHPulse Notice:' . $this->color_reset,
+				'  Fresh flag detected, cleaning builder directory...',
+				''
+			);
+			$this->cleanBuilderDirectory();
+		}
+
 		// Migrate the PHP binaries to the builder directory
 		$this->migratePHPBinaries();
+
+		// Compile the application files to builder directory
+		$this->compileApplicationFiles();
+
+		// Always overwrite config.json in builder directory
+		$this->copyConfigToBuilder();
+
+		$this->write(
+			$this->color_green . 'PHPulse Success:' . $this->color_reset,
+			'  Application prepared successfully!',
+			''
+		);
 
 	}
 
@@ -207,15 +231,50 @@ class ConsoleEngine extends ConsoleHelpers
 		// Always overwrite config.json in builder directory
 		$this->copyConfigToBuilder();
 
-		// `npm run pack` in the builder directory
+		// Determine which npm script to run based on platform
+		$buildScript = 'build';
+		$platformLabel = 'current platform';
+		
+		if ($this->platform) {
+			switch(strtolower($this->platform)) {
+				case 'win':
+				case 'windows':
+					$buildScript = 'build:win';
+					$platformLabel = 'Windows';
+					break;
+				case 'mac':
+				case 'macos':
+					$buildScript = 'build:mac';
+					$platformLabel = 'macOS';
+					break;
+				case 'linux':
+					$buildScript = 'build:linux';
+					$platformLabel = 'Linux';
+					break;
+				case 'all':
+					$buildScript = 'build:all';
+					$platformLabel = 'all platforms';
+					break;
+				default:
+					$this->write(
+						$this->color_yellow . 'PHPulse Warning:' . $this->color_reset,
+						'  Invalid platform: ' . $this->platform,
+						'  Valid options: win, mac, linux, all',
+						'  Defaulting to current platform',
+						''
+					);
+			}
+		}
+
+		// `npm run build:*` in the builder directory
 		$this->write(
 			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
-			'  Packing your application...',
+			'  Building your application for ' . $platformLabel . '...',
 			$this->color_yellow . '  This process may take awhile' . $this->color_reset,
 			''
 		);
 
-		$response = exec('cd ' . $this->builder_dir . ' && npm run pack');
+		$response = exec('cd ' . $this->builder_dir . ' && npm run ' . $buildScript);
 
 		$this->write(
 			'  ' . $response,
@@ -262,10 +321,6 @@ class ConsoleEngine extends ConsoleHelpers
 		$package_config->version = $root_config->version;
 		$package_config->build->appId = $root_config->appId;
 		$package_config->build->productName = $appName;
-
-		// replace the name in the pack script
-		$makerScript = explode(" ", $package_config->scripts->pack); $makerScript[2] = $root_config->name;
-		$package_config->scripts->pack = implode(" ", $makerScript);
 
 		// rewrite the package config file
 		file_put_contents($this->package_config, json_encode($package_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -392,10 +447,24 @@ class ConsoleEngine extends ConsoleHelpers
 			$this->color_green . 'Available commands:' . $this->color_reset,
 			'  help                 Displays help for a command',
 			'  init                 Initialize the application',
-			'  prepare              Prepare the application for building',
-			'  make			        Build the windows application (exe)',
+			'  prepare              Prepare the application (update files)',
+			'  make		        Build the application',
 			'  serve                Serve the application on real time',
 			'  version              Display the current version of the framework',
+			'',
+			$this->color_green . 'Options:' . $this->color_reset,
+			'  --platform=win       Build for Windows',
+			'  --platform=mac       Build for macOS',
+			'  --platform=linux     Build for Linux',
+			'  --platform=all       Build for all platforms',
+			'  --fresh              Clean builder directory before preparing',
+			'',
+			$this->color_green . 'Examples:' . $this->color_reset,
+			'  php pulsar prepare',
+			'  php pulsar prepare --fresh',
+			'  php pulsar make --platform=win',
+			'  php pulsar make --platform=mac',
+			'  php pulsar make --platform=all',
 			''
 		);
 	}
@@ -441,6 +510,18 @@ class ConsoleEngine extends ConsoleHelpers
 
 			$this->command = $arguments[0];
 			$this->option = $arguments[1] ?? null;
+			
+			// Parse platform from additional arguments
+			$this->platform = null;
+			$this->fresh = false;
+			foreach ($_SERVER['argv'] as $arg) {
+				if (strpos($arg, '--platform=') === 0) {
+					$this->platform = substr($arg, 11);
+				}
+				if ($arg === '--fresh') {
+					$this->fresh = true;
+				}
+			}
 		} else {
 			$this->showHelp();
 			exit(1);
@@ -628,6 +709,50 @@ class ConsoleEngine extends ConsoleHelpers
 		);
 
 		copy($this->root_config, $this->build_config);
+	}
+
+	/*
+	|--------------------------------------------------------------------------
+	| Clean Builder Directory
+	|--------------------------------------------------------------------------
+	|
+	| The clean builder directory function is responsible for removing all
+	| contents in the builder directory except core files needed for building.
+	| @return void
+	|
+	*/
+
+	private function cleanBuilderDirectory() : void
+	{
+		$exclude = [
+			'node_modules',
+			'package.json',
+			'package-lock.json',
+			'main.js',
+			'assets'
+		];
+
+		$items = scandir($this->builder_dir);
+		
+		foreach ($items as $item) {
+			if ($item === '.' || $item === '..' || in_array($item, $exclude)) {
+				continue;
+			}
+
+			$path = $this->builder_dir . '/' . $item;
+			
+			if (is_dir($path)) {
+				$this->fs->remove($path);
+			} elseif (is_file($path)) {
+				unlink($path);
+			}
+		}
+
+		$this->write(
+			$this->color_green . 'PHPulse Notice:' . $this->color_reset,
+			'  Builder directory cleaned.',
+			''
+		);
 	}
 
 	/*
